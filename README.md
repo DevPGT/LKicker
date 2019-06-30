@@ -15,4 +15,4 @@ Simple way to use,
 
 Please note this is my first bash script posted on github, i hope you enjoy and report the issues, then i will try to fix it the quickest possible!
 
-Check the script demo here: https://vimeo.com/user100261649/review/345273254/8d0769540d
+Check the script demo here: https://youtu.be/vsTWO_IYYZU (new)
