@@ -14,3 +14,5 @@ Simple way to use,
   - note: To work fine, turn off the other's interface typing "ifconfig wlanX down" on your terminal!
 
 Please note this is my first bash script posted on github, i hope you enjoy and report the issues, then i will try to fix it the quickest possible!
+
+Check the script demo here: https://vimeo.com/user100261649/review/345273254/8d0769540d
