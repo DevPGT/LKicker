@@ -4,14 +4,14 @@ A Simple script to facilitate an kick-out any victim or unwanted intruder from y
 
 OBS: Do not use on network's which you dont have a administrator permission!
 Simple way to use,
-  - chmod +x kicker
-  - Kicker
+  - chmod +x lkicker
+  - ./lkicker
   - Wait and select your favorite wlan interface
   - Select the victim then kick-out it!
   - Only tested on debian based system's !
   - Core-dependencies: Aircrack-ng, nmap and core linux tools like "sed","cat" and "tail".
 
-_Please note this is my first bash script posted on github, i hope you enjoy and report the issues, then i will try to fix it the quickest possible!
+_Please note this is my first bash script posted on github, i hope you enjoy and report the issues, then i will try to fix it the quickest possible!_
 
 Check the script demo here: https://youtu.be/vsTWO_IYYZU (old)
 
