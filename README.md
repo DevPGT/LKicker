@@ -16,3 +16,21 @@ Simple way to use,
 Please note this is my first bash script posted on github, i hope you enjoy and report the issues, then i will try to fix it the quickest possible!
 
 Check the script demo here: https://youtu.be/vsTWO_IYYZU (new)
+
+
+
+Notas da nova atualização { 3.0.1 }:
+ - Implementado auto-updater
+ - Implementado novo sistema de cores
+ - Implementado verificador e instalador automatico de dependencias
+ - Implementado verificador de frequencia da conexão utilizada ( não testado com 5GHZ pode não funcionar ! )
+ - Implementado auto-desabilitador de interfaces para evitar conflitos entre si
+ - Implementado sistema para verificar compatibilidades e evitar erros
+ - Implementado sistema de checar portas abertas e identificar sistema operacional no cliente escolhido
+ - Implementado sistema de re escanear a rede caso tenha tido problema ao exibir os clientes conectados a rede
+ - Implementado sistema de proteção contra uso de interfaces inexistentes (escrito pelo usuario)
+ - Varios bugs e problemas corrigidos
+ - Novo modelo de mensagens , alertas , perguntas e informativos
+ - Novas mensagens para manter o usuario atualizado em relação ao que esta sendo identificado e feito pelo script
+
+Reportem problemas , bugs ou erros tentarei ajudar o mais breve possivel ! desde já agradeço !
