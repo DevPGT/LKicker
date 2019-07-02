@@ -7,17 +7,28 @@ Simple way to use,
   - chmod +x kicker
   - Kicker
   - Wait and select your favorite wlan interface
-  - To work right, check if the other's cards is turned off !
   - Select the victim then kick-out it!
   - Only tested on debian based system's !
   - Core-dependencies: Aircrack-ng, nmap and core linux tools like "sed","cat" and "tail".
-  - note: To work fine, turn off the other's interface typing "ifconfig wlanX down" on your terminal!
 
-Please note this is my first bash script posted on github, i hope you enjoy and report the issues, then i will try to fix it the quickest possible!
+_Please note this is my first bash script posted on github, i hope you enjoy and report the issues, then i will try to fix it the quickest possible!
 
-Check the script demo here: https://youtu.be/vsTWO_IYYZU (new)
+Check the script demo here: https://youtu.be/vsTWO_IYYZU (old)
 
 
+News Patchnotes { 3.0.1 }
+ - Implemented auto-updater
+ - Implemented new color-system
+ - Implemented checker and auto-installer for core-depends
+ - Implemented frequency checker (Perhaps 5GHz may not work right)
+ - Implemented Interface auto-disable to avoid internal-conflicts
+ - Implemented port-checker and O.S Detection
+ - Implemented Compability checker to avoid mistakes
+ - Implemented Network re-scan option
+ - Implemented System to avoid the user of write wrong interface name to ensure the script functionality
+ - Bug fixs
+ - New model of message, alert, questions and info
+ - New messages to keep the user aware about what is happening in the script
 
 Notas da nova atualização { 3.0.1 }:
  - Implementado auto-updater
