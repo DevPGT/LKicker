@@ -1,17 +1,18 @@
 # LKicker
-A Simple script to facilitate an kick-out any victim or unwanted intruder from your local network.
+A simple script to facilitate and kickout any victim or unwanted intruder from your local network.
 
+OBS: Do NOT use it on networks in which you don't have administrative permission or ownership.
 
-OBS: Do not use on network's which you dont have a administrator permission!
-Simple way to use,
-  - chmod +x lkicker
-  - ./lkicker
-  - Wait and select your favorite wlan interface
-  - Select the victim then kick-out it!
-  - Only tested on debian based system's !
-  - Core-dependencies: Aircrack-ng, nmap and core linux tools like "sed","cat" and "tail".
+It's simple to use:
 
-_Please note this is my first bash script posted on github, i hope you enjoy and report the issues, then i will try to fix it the quickest possible!_
+1) # chmod +x lkicker
+2) #./lkicker
+3) Wait and select your favorite wlan interface
+4) Select the victim then kick him out!
+ * Only tested on debian based systems !
+ * Core-dependencies: Aircrack-ng, nmap and core linux tools like "sed","cat" and "tail".
+
+_Please note that this is my first bash script posted on Github. I hope you enjoy it and report any issues, then I'll do my best to fix it as soon as possible!_
 
 Check the script demo here: https://youtu.be/vsTWO_IYYZU (old)
 
@@ -43,5 +44,10 @@ Notas da nova atualização { 3.0.1 }:
  - Varios bugs e problemas corrigidos
  - Novo modelo de mensagens , alertas , perguntas e informativos
  - Novas mensagens para manter o usuario atualizado em relação ao que esta sendo identificado e feito pelo script
+ Notas de bug fixs { 3.0.5 }:
+  - Implementado sistema de verificação de conexão ativa na interface escolhida pelo usuario
+  - Implementado sistema para identificar conexão a internet para apropriar o script
+  - Implementado um novo sistema com 4 metodos de obtenção do gateway padrão ( devido incompatibilidade com alguns sistemas )
+  - Adicionados novas mensagens informativas
 
 Reportem problemas , bugs ou erros tentarei ajudar o mais breve possivel ! desde já agradeço !
