@@ -44,6 +44,9 @@ Notas da nova atualização { 3.0.1 }:
  - Varios bugs e problemas corrigidos
  - Novo modelo de mensagens , alertas , perguntas e informativos
  - Novas mensagens para manter o usuario atualizado em relação ao que esta sendo identificado e feito pelo script
+ 
+ 
+ 
  Notas de bug fixs { 3.0.5 }:
   - Implementado sistema de verificação de conexão ativa na interface escolhida pelo usuario
   - Implementado sistema para identificar conexão a internet para apropriar o script
