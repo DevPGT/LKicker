@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============[ VARIAVEIS ]=============
-	version=3.0.1
+	version=3.0.5
 	last_date="01/07/19"
 	color_red="\033[01;31m"
 	color_green="\033[01;32m"
@@ -130,12 +130,23 @@ function load_clients(){
 }
 function frequency_checker(){
 	echo -e "$color_yellow [...] Checando Frequencia da conexão"
-	if [ $(iwconfig $card_name | grep "Frequency" | sed 's/Mode:.*y://g' | sed 's/ //g' | cut -c1) == "5" ]
-		then
-			echo -e "$color_red [!] ALERTA: FREQUENCIAS MAIORES QUE 2.5GHz PODEM NÃO FUNCIONAR CORRETAMENTE!"
+	hz=$(iwconfig $card_name | grep "Frequency" | sed 's/Mode:.*y://g' | sed 's/ //g' | cut -c1)
+	if [ -z $hz ]
+			then
+				new_logo
+				echo -e "\n\n\n\n"
+				echo -e "$color_red [!] Não foi identificado nenhuma conexão a internet na sua placa escolhida !"
+				echo -e " [!] Reinicie o script e verifique se voce esta conectado a rede com a placa escolhida !"
+				exit
 	else
-		echo -e "$color_green [!] Frequencia detectada: $(iwconfig $card_name | grep "Frequency" | sed 's/Mode:.*y://g' | sed 's/ //g' | cut -c1-8)"
+		if [ $hz == "5" ]
+			then
+				echo -e "$color_red [!] ALERTA: FREQUENCIAS MAIORES QUE 2.5GHz PODEM NÃO FUNCIONAR CORRETAMENTE!"
+		else
+				echo -e "$color_green [!] Frequencia detectada: $(iwconfig $card_name | grep "Frequency" | sed 's/Mode:.*y://g' | sed 's/ //g' | cut -c1-8)"
+		fi
 	fi
+	check_internet
 }
 function know_interfaces(){
 	echo -e "$color_yellow [...] Realizando reconhecimento de interfaces e compatibilidades"
@@ -149,6 +160,42 @@ function know_interfaces(){
 		fi
 	done
 	frequency_checker
+}
+function check_internet(){
+	echo -e "$color_yellow [...] Checando conexão a internet"
+	ping 8.8.8.8 -c 4 > /dev/null;
+	if [ "$?" = "0" ]
+		then
+			echo -e "$color_green [!] Conexão com a internet identificada!"
+	else
+		echo -e "$color_red [!] Conexão com a internet não identificada ! voce pode experienciar problemas !"
+	fi
+}
+function get_gateway(){
+	lip=$(ifconfig $card_name | grep "inet 192" | sed 's/inet.*broadcast/->/' | sed -e 's/ //g' | cut -c3-12 | sed 's/$/0-24/' | sed -r -e 's/[-]+/\//g')
+	echo -e "$color_yellow [...] Utilizando metodo 1 para obter o gateway padrão {$lip}"
+	if [ $(echo $lip | grep -c ".") -lt 1 ]
+		then
+		echo -e "$color_yellow [...] Utilizando metodo 2 para obter o gateway padrão {$lip}"
+		lip=$(route -n | grep $card_name | cut -c1-9 | grep 2)
+		if [ $(echo $lip | grep -c ".") -lt 1 ]
+			then
+			echo -e "$color_yellow [...] Utilizando metodo 3 para obter o gateway padrão {$lip}"
+				lip=$(route -n | grep $card_name | cut -c1-9 | grep 1)
+				if [ $(echo $lip | grep -c ".") -lt 1 ]
+					then
+						echo -e "$color_yellow [...] Utilizando metodo 4 para obter o gateway padrão {$lip}"
+						lip=$(ifconfig $card_name | grep "inet 192" | sed 's/inet.*broadcast/->/' | sed -e 's/ //g' | cut -c3-12 | sed 's/$/0-24/' | sed -r -e 's/[-]+/\//g') 
+					if [ $(echo $lip | grep -c ".") -lt 1 ]
+						then
+							echo -e "$color_yellow [?] Não foi possivel identificar seu Gateway Padrao ! Informe seu gateway abaixo (default: 192.168.0.1)"
+							read r_mac
+							lip="$(echo $r_mac | cut -c1-9).0/24"
+					fi
+				fi
+		fi
+	fi	
+	echo -e "$color_green [!] GATEWAY PADRÃO: $lip"
 }
 function show_macs(){
 	macs=("1" "0")
@@ -183,7 +230,7 @@ function show_macs(){
 				then
 					card_name=$(cat interfaces.txt | grep -n 1 | cut -c3-7)
 					echo -e "$color_green [!] Forçando alteração de Interface para  $card_name !"
-					lip=$(ifconfig $card_name | grep "inet 192" | sed 's/inet.*broadcast/->/' | sed -e 's/ //g' | cut -c3-12 | sed 's/$/0-24/' | sed -r -e 's/[-]+/\//g')
+					get_gateway
 					ifconfig $card_name up
 					ping 127.0.0.1 -c 4 > dumps.txt
 					get_routermac
@@ -258,7 +305,7 @@ if [ $card != "" ]
 fi
 know_interfaces
 echo -e "$color_yellow [...] -> Analisando REDE Aguarde!"
-lip=$(ifconfig $card_name | grep "inet 192" | sed 's/inet.*broadcast/->/' | sed -e 's/ //g' | cut -c3-12 | sed 's/$/0-24/' | sed -r -e 's/[-]+/\//g') 
+get_gateway
 load_clients
 echo -e "$color_yellow [...] -> Inicializando Kicker..."
 ping 127.0.0.1 -c 4 > dumps.txt 
@@ -347,4 +394,3 @@ $color_green   0~$y)$color_white Expulsar cliente escolhido"
 	fi
 }
 ask
-
