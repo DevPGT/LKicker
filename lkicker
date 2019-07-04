@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============[ VARIAVEIS ]=============
-	version=3.0.5
-	last_date="01/07/19"
+	version=3.0.6
+	last_date="04/07/19"
 	color_red="\033[01;31m"
 	color_green="\033[01;32m"
 	color_yellow="\033[01;33m"
@@ -49,18 +49,17 @@ function check_version(){
 		then
 			new_logo
 			echo -e " $color_red [!!!] $color_yellow Está versão do script está desatualizada ! { $version } Atualize para nova versão:$color_green { $version_now }"
-			echo " [!] Proseguir com instalação automatica ?"
+			echo " [!] Proseguir com instalação automatica ? ( s/n )"
 			read resposta
-			resposta={$resposta,,}
 			if [ $resposta == "s" ]
 				then
 					if [ -e "updater" ] ; then rm updater > dumps.txt; fi
 					echo -e "
 					ping -c 2 127.0.0.1 > dumps.txt
-					mv ./kicker ./kicker_old
-					wget https://raw.githubusercontent.com/DevPGT/LKicker/master/kicker
-					chmod +x ./kicker
-					./kicker
+					mv ./lkicker ./kicker_old
+					wget https://raw.githubusercontent.com/DevPGT/LKicker/master/lkicker
+					chmod +x ./lkicker
+					./lkicker
 					" > updater
 					chmod +x ./updater
 					gnome-terminal -- "./updater" > dumps.txt
@@ -86,9 +85,8 @@ function check_dependencies(){
 	apt-get install grep sed > core-depends.logs
 	if [ $(nmap -version | grep "Nmap version" | sed 's/Nmap.*on //g' | sed 's/ (.*)//g' | sed 's/ //g' | cut -c1) -lt 6 ]
 		then
-			echo -e "$color_yellow [?] A sua versão do nmap esta desatualizada deseja atualiza-la ?(S/N)"
+			echo -e "$color_yellow [?] A sua versão do nmap esta desatualizada deseja atualiza-la ?(s/n)"
 			read resposta
-			resposta={$resposta,,}
 			if [ $resposta == "s" ]
 				then
 					echo -e "$color_yellow [!] AGUARDE ! INSTALANDO FERRAMENTA NMAP !"
@@ -394,3 +392,4 @@ $color_green   0~$y)$color_white Expulsar cliente escolhido"
 	fi
 }
 ask
+
