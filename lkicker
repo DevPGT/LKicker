@@ -195,7 +195,7 @@ function get_gateway(){
 	fi
 	if [ $(echo $lip | grep -c "0/24") -lt 1 ]
 		then
-			lip="{$lip}.0/24"
+			lip="${lip}.0/24"
 	fi	
 	echo -e "$color_green [!] GATEWAY PADRÃO: $lip"
 }
@@ -262,10 +262,13 @@ function get_nmap(){
 	ask
 }
 function stop(){
-	for line in $(cat up_interfaces.txt) 
-	do
-		ifconfig $line up
-	done 
+	if [ -z up_interfaces.txt ]
+		then
+			for line in $(cat up_interfaces.txt) 
+			do
+				ifconfig $line up
+			done
+	fi 
 	airmon-ng stop "$card_name"mon > dumps.txt
 	clear
 	print_logo
@@ -276,8 +279,9 @@ function stop(){
 	echo -e "$color_white [!] Versão:$color_green $version"
 	ping 127.0.0.1 -c 5 > dumps.txt
 	clear	
-	rm readmacs.txt interfaces.txt up_interfaces.txt clients_ips.txt scan_out.txt clients.txt core-depends.logs > dumps.txt
+	rm readmacs.txt interfaces.txt clients_ips.txt scan_out.txt clients.txt core-depends.logs > dumps.txt
 	if [ -e "execute.sh" ] ; then rm execute.sh > dumps.txt; fi
+	if [ -e "up_interfaces.txt" ] ; then rm up_interfaces.txt > dumps.txt; fi
 	rm dumps.txt
 	exit
 }
