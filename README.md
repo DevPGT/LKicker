@@ -47,10 +47,11 @@ Notas da nova atualização { 3.0.1 }:
  
  
  
- Notas de bug fixs { 3.0.5 }:
+ Notas de bug fixs { 3.0.6 }:
   - Implementado sistema de verificação de conexão ativa na interface escolhida pelo usuario
   - Implementado sistema para identificar conexão a internet para apropriar o script
   - Implementado um novo sistema com 4 metodos de obtenção do gateway padrão ( devido incompatibilidade com alguns sistemas )
   - Adicionados novas mensagens informativas
+  - Resolvido problema do atualizador automatico não funcionar devido a diacronia entre o projeto no Github e o script
 
 Reportem problemas , bugs ou erros tentarei ajudar o mais breve possivel ! desde já agradeço !
