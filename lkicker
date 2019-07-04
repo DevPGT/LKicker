@@ -179,11 +179,11 @@ function get_gateway(){
 		if [ $(echo $lip | grep -c ".") -lt 1 ]
 			then
 			echo -e "$color_yellow [...] Utilizando metodo 3 para obter o gateway padrão {$lip}"
-				lip=$(route -n | grep $card_name | cut -c1-9 | grep 1)
+				lip="$(route -n | grep $card_name | cut -c1-9 | grep 1).0/24"
 				if [ $(echo $lip | grep -c ".") -lt 1 ]
 					then
 						echo -e "$color_yellow [...] Utilizando metodo 4 para obter o gateway padrão {$lip}"
-						lip=$(ifconfig $card_name | grep "inet 192" | sed 's/inet.*broadcast/->/' | sed -e 's/ //g' | cut -c3-12 | sed 's/$/0-24/' | sed -r -e 's/[-]+/\//g') 
+						lip="$(ifconfig $card_name | grep "inet 192" | sed 's/inet.*broadcast/->/' | sed -e 's/ //g' | cut -c3-12 | sed 's/$/0-24/' | sed -r -e 's/[-]+/\//g')"
 					if [ $(echo $lip | grep -c ".") -lt 1 ]
 						then
 							echo -e "$color_yellow [?] Não foi possivel identificar seu Gateway Padrao ! Informe seu gateway abaixo (default: 192.168.0.1)"
@@ -192,6 +192,10 @@ function get_gateway(){
 					fi
 				fi
 		fi
+	fi
+	if [ $(echo $lip | grep -c "0/24") -lt 1 ]
+		then
+			lip="{$lip}.0/24"
 	fi	
 	echo -e "$color_green [!] GATEWAY PADRÃO: $lip"
 }
