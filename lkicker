@@ -117,7 +117,8 @@ function check_dependencies(){
 function get_routermac(){
 	echo -e "$color_yellow [...] Obtendo mac do roteador"
 	router_mac=$(iwconfig $card_name| grep Access | sed -e 's/Mode.*nt://g' | grep : | sed -e 's/ //g')
-	ESSID=$(iwconfig $card_name | grep ESSID | sed 's/$card_name.*://g' | sed 's/\"//g')
+	sid=$(iwconfig $card_name | grep ESSID | sed 's/$card_name.*://g' | sed 's/\"//g')
+	ESSID=$(echo "${sid#*:}")
 	echo -e "$color_green [!] GATEWAY MAC:$color_white { $router_mac }"
 	echo -e "$color_green [!] ESSID DA REDE: $color_white { $ESSID }"
 }
@@ -154,9 +155,17 @@ function frequency_checker(){
 			then
 				new_logo
 				echo -e "\n\n\n\n"
-				echo -e "$color_red [!] Não foi identificado nenhuma conexão a internet na sua placa escolhida !"
-				echo -e " [!] Reinicie o script e verifique se voce esta conectado a rede com a placa escolhida !"
-				exit
+				ifconfig $card_name up
+				ping -c 10 127.0.0.1 > dumps.txt
+				hz=$(iwconfig $card_name | grep "Frequency" | sed 's/Mode:.*y://g' | sed 's/ //g' | cut -c1)
+				echo -e "$color_yellow [...] Verificando conexão a rede"
+				if [ -z $hz ]
+					then
+						echo -e "$color_red [!] Não foi identificado nenhuma conexão a internet na sua placa escolhida !"
+						echo -e " [!] Reinicie o script e verifique se voce esta conectado a rede com a placa escolhida !"
+						exit
+				fi
+		echo -e "$color_green [!] Frequencia detectada: $(iwconfig $card_name | grep "Frequency" | sed 's/Mode:.*y://g' | sed 's/ //g' | cut -c1-8)"
 	else
 		if [ $hz == "5" ]
 			then
@@ -354,7 +363,7 @@ $color_green   0~$y)$color_white Expulsar cliente escolhido"
 	read ddos
 	if [ $ddos == 96 ]
 		then
-			airmon-ng stop ${card_name}mon
+			airmon-ng stop ${card_name}mon > dumps.txt
 			new_logo
 			echo -e "$color_yellow [...] Aguarde ajustando parametros e executando funções!"
 			ping -c 8 127.0.0.1 > dumps.txt
