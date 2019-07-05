@@ -47,10 +47,15 @@ Notas da nova atualização { 3.0.1 }:
  
  
  
- Notas de bug fixs { 3.0.6 }:
+ Notas de bug fixs { 3.1.3 }:
   - Implementado sistema de verificação de conexão ativa na interface escolhida pelo usuario
   - Implementado sistema para identificar conexão a internet para apropriar o script
   - Implementado um novo sistema com 4 metodos de obtenção do gateway padrão ( devido incompatibilidade com alguns sistemas )
+  - Implementado sistema identificador de essid para aprimorar experiencia e filtros do ataque
+  - Agora suporta sistemas que usam modelo " monX "
+  - Fixado bug eventual durante a verificação de interface
+  - Removido algumas mensagens não intencionais
+  - Fixado bug ao obter gateway padrão em alguns sistemas
   - Adicionados novas mensagens informativas
   - Resolvido problema do atualizador automatico não funcionar devido a diacronia entre o projeto no Github e o script
 
